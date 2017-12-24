@@ -1,0 +1,157 @@
+---
+title: "<span style ='font-size: 165px;'>Tidyverse</span>"
+knit: (function(inputFile, encoding) { 
+  out_dir <- "docs";
+  rmarkdown::render(inputFile,
+                      encoding=encoding, 
+                      output_file=file.path(dirname(inputFile), out_dir, 'index.html'))})
+output:
+  revealjs::revealjs_presentation:
+    css: fms.css
+    transition: slide
+    center: true
+    self_contained: false
+    reveal_plugins: ["zoom"]
+---
+
+
+# Tidyverse
+
+```{r}
+library(tidyverse)
+options(tibble.print_max = 8, tibble.print_min = 4)
+```
+
+
+## Tidyverse
+
+Ist eine Sammlung von Paketen von Hadley Wickham
+
+> - dplyr (Datenverarbeitung)
+> - ggplot2 (Grafiken)
+> - tidyr (Datenverarbeitung)
+> - stringr (Verarbeitung von Strings Regex)
+> - forcats (Factor-Variablen)
+> - purrr (Funktionales Programmieren)
+> - readr (Einlesen von Daten)
+
+# dplyr
+## 5 Verben
+
+>- `filter()` Zeilen auswählen mit einer Bedingung
+>- `select()` Spalten auswählen
+>- `arrange()` Sortieren
+>- `mutate()` Variablen hinzufügen
+>- `summarise()` Zeilen aggregieren
+
+## Beispiel
+
+Alle Star Wars Figuren
+
+```{r, warning=FALSE, message=FALSE}
+starwars
+```
+
+## filter() 
+
+`filter()` selektiert Zeilen die eine Bedingung erfüllen
+
+```{r, warning=FALSE, message=FALSE}
+filter(starwars, species == "Human")
+```
+
+
+## filter() 
+
+Mehrere Bedingungen können durch Komma getrennt werden. Wirkt wie ein `&`
+
+```{r, warning=FALSE, message=FALSE}
+filter(starwars, species == "Human", gender == "female")
+```
+
+
+ 
+## filter() 
+
+Komplexere Bedingungen sind natürlich auch möglich:
+
+Vergleichs Operatoren:
+
+`>, >=, <, <=, != , ==, %in%`
+
+
+Boolsche Operatoren:
+
+- `&` und
+- `|` oder
+- `xor(a,b)` entweder a oder b
+
+## filter()
+
+Übung:
+
+Alle Menschen größer als 1.90m
+
+<div class="fragment fade-up">
+```{r, eval=FALSE}
+filter(starwars, 
+       height > 190 & species == "Human")
+```
+</div>
+
+<div class="fragment fade-up">Blaue Augen und nicht menschlich</div>
+
+<div class="fragment fade-up">
+```{r, eval=FALSE}
+filter(starwars, 
+          eye_color == "blue", 
+          species != "Human")
+```
+</div>
+
+
+## select()
+
+Selektiert Spalten
+
+```{r}
+select(starwars, name, homeworld)
+```
+
+## select()
+
+Auswahl ist auch über mehrere Variablen möglich
+
+```{r}
+select(starwars, hair_color:eye_color)
+```
+
+## select()
+
+negative Auswahl mit -
+
+```{r}
+select(starwars, -name)
+```
+
+
+## select()
+
+Selection helper
+
+* `starts_with()`: Startet mit einem Prefix
+* `ends_with()`: Endet mit einem Suffix
+* `contains()`: Enthält einen String
+* `matches()`: Matched eine RegEx
+* `num_range()`: Ein numerischer Bereich x01, x02, x03.
+* `one_of()`: Variablen in einem Character vector
+* `everything()`: Alle Variablen.
+
+## select()
+
+```{r}
+select(starwars, ends_with("color"))
+```
+
+
+
