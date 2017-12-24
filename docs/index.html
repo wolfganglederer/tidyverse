@@ -529,7 +529,8 @@ document.getElementsByTagName('head')[0].appendChild(style);
 ## # ... with 83 more rows, and 6 more variables: gender &lt;chr&gt;,
 ## #   homeworld &lt;chr&gt;, species &lt;chr&gt;, films &lt;list&gt;, vehicles &lt;list&gt;,
 ## #   starships &lt;list&gt;</code></pre>
-</section><section id="filter" class="slide level2">
+</section></section>
+<section><section id="filter" class="titleslide slide level1"><h1>filter()</h1></section><section id="filter-1" class="slide level2">
 <h2>filter()</h2>
 <p><code>filter()</code> selektiert Zeilen die eine Bedingung erfüllen</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">filter</span>(starwars, species <span class="op">==</span><span class="st"> &quot;Human&quot;</span>)</code></pre></div>
@@ -543,7 +544,7 @@ document.getElementsByTagName('head')[0].appendChild(style);
 ## # ... with 31 more rows, and 6 more variables: gender &lt;chr&gt;,
 ## #   homeworld &lt;chr&gt;, species &lt;chr&gt;, films &lt;list&gt;, vehicles &lt;list&gt;,
 ## #   starships &lt;list&gt;</code></pre>
-</section><section id="filter-1" class="slide level2">
+</section><section id="filter-2" class="slide level2">
 <h2>filter()</h2>
 <p>Mehrere Bedingungen können durch Komma getrennt werden. Wirkt wie ein <code>&amp;</code></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">filter</span>(starwars, species <span class="op">==</span><span class="st"> &quot;Human&quot;</span>, gender <span class="op">==</span><span class="st"> &quot;female&quot;</span>)</code></pre></div>
@@ -557,7 +558,7 @@ document.getElementsByTagName('head')[0].appendChild(style);
 ## # ... with 5 more rows, and 7 more variables: birth_year &lt;dbl&gt;,
 ## #   gender &lt;chr&gt;, homeworld &lt;chr&gt;, species &lt;chr&gt;, films &lt;list&gt;,
 ## #   vehicles &lt;list&gt;, starships &lt;list&gt;</code></pre>
-</section><section id="filter-2" class="slide level2">
+</section><section id="filter-3" class="slide level2">
 <h2>filter()</h2>
 <p>Komplexere Bedingungen sind natürlich auch möglich:</p>
 <p>Vergleichs Operatoren:</p>
@@ -568,7 +569,7 @@ document.getElementsByTagName('head')[0].appendChild(style);
 <li><code>|</code> oder</li>
 <li><code>xor(a,b)</code> entweder a oder b</li>
 </ul>
-</section><section id="filter-3" class="slide level2">
+</section><section id="filter-4" class="slide level2">
 <h2>filter()</h2>
 <p>Übung:</p>
 <p>Alle Menschen größer als 1.90m</p>
@@ -577,16 +578,20 @@ document.getElementsByTagName('head')[0].appendChild(style);
        height <span class="op">&gt;</span><span class="st"> </span><span class="dv">190</span> <span class="op">&amp;</span><span class="st"> </span>species <span class="op">==</span><span class="st"> &quot;Human&quot;</span>)</code></pre></div>
 </div>
 <div class="fragment fade-up">
-Blaue Augen und nicht menschlich
+Blaue oder gelbe Augen und nicht menschlich
 </div>
 <div class="fragment fade-up">
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">filter</span>(starwars, 
-          eye_color <span class="op">==</span><span class="st"> &quot;blue&quot;</span>, 
+          eye_color <span class="op">%in%</span><span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;blue&quot;</span>, <span class="st">&quot;yellow&quot;</span>), 
           species <span class="op">!=</span><span class="st"> &quot;Human&quot;</span>)</code></pre></div>
 </div>
-</section><section id="select" class="slide level2">
+</section></section>
+<section><section id="select" class="titleslide slide level1"><h1>select()</h1></section><section id="select-1" class="slide level2">
 <h2>select()</h2>
-<p>Selektiert Spalten</p>
+<ul>
+<li><code>rename()</code> behält alle Spalten und benennt um <code>rename(df, new = old)</code></li>
+<li><code>select()</code> selektiert Spalten</li>
+</ul>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">select</span>(starwars, name, homeworld)</code></pre></div>
 <pre><code>## # A tibble: 87 x 2
 ##             name homeworld
@@ -596,19 +601,19 @@ Blaue Augen und nicht menschlich
 ## 3          R2-D2     Naboo
 ## 4    Darth Vader  Tatooine
 ## # ... with 83 more rows</code></pre>
-</section><section id="select-1" class="slide level2">
+</section><section id="select-2" class="slide level2">
 <h2>select()</h2>
 <p>Auswahl ist auch über mehrere Variablen möglich</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">select</span>(starwars, hair_color<span class="op">:</span>eye_color)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">select</span>(starwars, name<span class="op">:</span>mass)</code></pre></div>
 <pre><code>## # A tibble: 87 x 3
-##   hair_color  skin_color eye_color
-##        &lt;chr&gt;       &lt;chr&gt;     &lt;chr&gt;
-## 1      blond        fair      blue
-## 2       &lt;NA&gt;        gold    yellow
-## 3       &lt;NA&gt; white, blue       red
-## 4       none       white    yellow
+##             name height  mass
+##            &lt;chr&gt;  &lt;int&gt; &lt;dbl&gt;
+## 1 Luke Skywalker    172    77
+## 2          C-3PO    167    75
+## 3          R2-D2     96    32
+## 4    Darth Vader    202   136
 ## # ... with 83 more rows</code></pre>
-</section><section id="select-2" class="slide level2">
+</section><section id="select-3" class="slide level2">
 <h2>select()</h2>
 <p>negative Auswahl mit -</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">select</span>(starwars, <span class="op">-</span>name)</code></pre></div>
@@ -621,7 +626,7 @@ Blaue Augen und nicht menschlich
 ## 4    202   136       none       white    yellow       41.9   male
 ## # ... with 83 more rows, and 5 more variables: homeworld &lt;chr&gt;,
 ## #   species &lt;chr&gt;, films &lt;list&gt;, vehicles &lt;list&gt;, starships &lt;list&gt;</code></pre>
-</section><section id="select-3" class="slide level2">
+</section><section id="select-4" class="slide level2">
 <h2>select()</h2>
 <p>Selection helper</p>
 <ul>
@@ -633,7 +638,7 @@ Blaue Augen und nicht menschlich
 <li><code>one_of()</code>: Variablen in einem Character vector</li>
 <li><code>everything()</code>: Alle Variablen.</li>
 </ul>
-</section><section id="select-4" class="slide level2">
+</section><section id="select-5" class="slide level2">
 <h2>select()</h2>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">select</span>(starwars, <span class="kw">ends_with</span>(<span class="st">&quot;color&quot;</span>))</code></pre></div>
 <pre><code>## # A tibble: 87 x 3
@@ -643,6 +648,85 @@ Blaue Augen und nicht menschlich
 ## 2       &lt;NA&gt;        gold    yellow
 ## 3       &lt;NA&gt; white, blue       red
 ## 4       none       white    yellow
+## # ... with 83 more rows</code></pre>
+</section><section id="select-6" class="slide level2">
+<h2>select()</h2>
+<p>Übung:</p>
+<p>Stelle <code>homeworld</code> an den Anfang</p>
+<div class="fragment fade-up">
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">select</span>(starwars, homeworld, <span class="kw">everything</span>())</code></pre></div>
+</div>
+<div class="fragment fade-up">
+Benne <code>gender</code> in <code>sex</code> um
+</div>
+<div class="fragment fade-up">
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">rename</span>(starwars, <span class="dt">sex =</span> gender)</code></pre></div>
+</div>
+</section></section>
+<section><section id="mutate" class="titleslide slide level1"><h1>mutate()</h1></section><section id="mutate-1" class="slide level2">
+<h2>mutate()</h2>
+<ul>
+<li><code>mutate()</code> erzeugt neue Variablen</li>
+<li><code>transmute()</code> erzeugt Variablen und behält nur die neuen Variablen</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">starwars_short &lt;-<span class="st"> </span><span class="kw">select</span>(starwars, name<span class="op">:</span>mass)
+<span class="kw">mutate</span>(starwars_short, <span class="dt">bmi =</span> mass<span class="op">/</span>(height<span class="op">/</span><span class="dv">100</span>)<span class="op">^</span><span class="dv">2</span>) </code></pre></div>
+<pre><code>## # A tibble: 87 x 4
+##             name height  mass      bmi
+##            &lt;chr&gt;  &lt;int&gt; &lt;dbl&gt;    &lt;dbl&gt;
+## 1 Luke Skywalker    172    77 26.02758
+## 2          C-3PO    167    75 26.89232
+## 3          R2-D2     96    32 34.72222
+## 4    Darth Vader    202   136 33.33007
+## # ... with 83 more rows</code></pre>
+</section><section id="mutate-2" class="slide level2">
+<h2>mutate()</h2>
+<p>Erzeugte Variablen können bereits referenziert werden</p>
+<div class="fragment fade-up">
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">mutate</span>(starwars_short,
+       <span class="dt">bmi =</span> mass<span class="op">/</span>(height<span class="op">/</span><span class="dv">100</span>)<span class="op">^</span><span class="dv">2</span>,
+       <span class="dt">adipositas =</span> bmi <span class="op">&gt;=</span><span class="st"> </span><span class="dv">30</span>)</code></pre></div>
+<pre><code>## # A tibble: 87 x 5
+##             name height  mass      bmi adipositas
+##            &lt;chr&gt;  &lt;int&gt; &lt;dbl&gt;    &lt;dbl&gt;      &lt;lgl&gt;
+## 1 Luke Skywalker    172    77 26.02758      FALSE
+## 2          C-3PO    167    75 26.89232      FALSE
+## 3          R2-D2     96    32 34.72222       TRUE
+## 4    Darth Vader    202   136 33.33007       TRUE
+## # ... with 83 more rows</code></pre>
+</div>
+</section><section id="mutate-3" class="slide level2">
+<h2>mutate()</h2>
+<p>Wichtige Erzeuger-Funktionen</p>
+<ul>
+<li>Arithmetische Operatoren <code>+, -, *, /, ^</code></li>
+<li>Modulus Opratoren <code>%/%, %%</code></li>
+<li>Logarithmen <code>log(), log2(), log10()</code></li>
+<li>Verschiebung <code>lead(), lag()</code></li>
+<li>Kumulative Funktionen <code>cumsum(), cummean(), cummax() ...</code>
+<ul>
+<li>RcppRoll für weitere Funktionen</li>
+</ul></li>
+<li>Logische Operatoren</li>
+<li>Rang-Funktionen <code>min_rank(), cume_dist(), percent_rank(), ...</code></li>
+<li>Factor Funktionen <code>cut()</code></li>
+</ul>
+</section><section id="mutate-4" class="slide level2">
+<h2>mutate()</h2>
+<p>Beispiel</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">mutate</span>(starwars_short,
+       <span class="dt">bmi =</span> mass<span class="op">/</span>(height<span class="op">/</span><span class="dv">100</span>)<span class="op">^</span><span class="dv">2</span>,
+       <span class="dt">weighted =</span> <span class="kw">cut</span>(bmi, <span class="dt">breaks =</span> <span class="kw">c</span>(<span class="dv">0</span>, <span class="fl">18.5</span>, <span class="dv">25</span>, <span class="dv">30</span>,<span class="ot">Inf</span>), 
+                      <span class="dt">labels =</span> <span class="kw">c</span>(<span class="st">&quot;underweight&quot;</span>, <span class="st">&quot;normal&quot;</span>, <span class="st">&quot;overweight&quot;</span>, <span class="st">&quot;obese&quot;</span>), 
+                      <span class="dt">ordered_result =</span> <span class="ot">TRUE</span>),
+       <span class="dt">bmi_rank =</span> <span class="kw">min_rank</span>(bmi)) </code></pre></div>
+<pre><code>## # A tibble: 87 x 6
+##             name height  mass      bmi   weighted bmi_rank
+##            &lt;chr&gt;  &lt;int&gt; &lt;dbl&gt;    &lt;dbl&gt;      &lt;ord&gt;    &lt;int&gt;
+## 1 Luke Skywalker    172    77 26.02758 overweight       42
+## 2          C-3PO    167    75 26.89232 overweight       46
+## 3          R2-D2     96    32 34.72222      obese       54
+## 4    Darth Vader    202   136 33.33007      obese       50
 ## # ... with 83 more rows</code></pre>
 </section></section>
     </div>

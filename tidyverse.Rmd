@@ -48,6 +48,7 @@ Alle Star Wars Figuren
 starwars
 ```
 
+# filter() 
 ## filter() 
 
 `filter()` selektiert Zeilen die eine Bedingung erfüllen
@@ -95,20 +96,22 @@ filter(starwars,
 ```
 </div>
 
-<div class="fragment fade-up">Blaue Augen und nicht menschlich</div>
+<div class="fragment fade-up">Blaue oder gelbe Augen und nicht menschlich</div>
 
 <div class="fragment fade-up">
 ```{r, eval=FALSE}
 filter(starwars, 
-          eye_color == "blue", 
+          eye_color %in% c("blue", "yellow"), 
           species != "Human")
 ```
 </div>
 
 
+# select()
 ## select()
 
-Selektiert Spalten
+- `rename()` behält alle Spalten und benennt um `rename(df, new = old)`
+- `select()` selektiert Spalten
 
 ```{r}
 select(starwars, name, homeworld)
@@ -119,7 +122,7 @@ select(starwars, name, homeworld)
 Auswahl ist auch über mehrere Variablen möglich
 
 ```{r}
-select(starwars, hair_color:eye_color)
+select(starwars, name:mass)
 ```
 
 ## select()
@@ -148,6 +151,79 @@ Selection helper
 ```{r}
 select(starwars, ends_with("color"))
 ```
+
+## select()
+
+Übung:
+
+Stelle `homeworld` an den Anfang
+
+<div class="fragment fade-up">
+```{r, eval=FALSE}
+select(starwars, homeworld, everything())
+```
+</div>
+
+<div class="fragment fade-up">Benne `gender` in `sex` um</div>
+
+<div class="fragment fade-up">
+```{r, eval=FALSE}
+rename(starwars, sex = gender)
+```
+</div>
+
+
+# mutate()
+
+## mutate()
+
+- `mutate()` erzeugt neue Variablen
+- `transmute()` erzeugt Variablen und behält nur die neuen Variablen
+
+```{r}
+starwars_short <- select(starwars, name:mass)
+mutate(starwars_short, bmi = mass/(height/100)^2) 
+```
+
+## mutate()
+
+Erzeugte Variablen können bereits referenziert werden
+
+<div class="fragment fade-up">
+```{r}
+mutate(starwars_short,
+       bmi = mass/(height/100)^2,
+       adipositas = bmi >= 30)
+```
+</div>
+
+## mutate()
+
+Wichtige Erzeuger-Funktionen
+
+- Arithmetische Operatoren `+, -, *, /, ^`
+- Modulus Opratoren `%/%, %%`
+- Logarithmen `log(), log2(), log10()` 
+- Verschiebung `lead(), lag()`
+- Kumulative Funktionen `cumsum(), cummean(), cummax() ...` 
+    - RcppRoll für weitere Funktionen
+- Logische Operatoren
+- Rang-Funktionen `min_rank(), cume_dist(), percent_rank(), ...`
+- Factor Funktionen `cut()`
+
+## mutate()
+
+Beispiel
+
+```{r}
+mutate(starwars_short,
+       bmi = mass/(height/100)^2,
+       weighted = cut(bmi, breaks = c(0, 18.5, 25, 30,Inf), 
+                      labels = c("underweight", "normal", "overweight", "obese"), 
+                      ordered_result = TRUE),
+       bmi_rank = min_rank(bmi)) 
+```
+
 
 
 
