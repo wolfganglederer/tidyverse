@@ -7,11 +7,10 @@ knit: (function(inputFile, encoding) {
                       output_file=file.path(dirname(inputFile), out_dir, 'index.html'))})
 output:
   revealjs::revealjs_presentation:
-    css: fms.css
+    theme: black
     transition: slide
     center: true
-    self_contained: false
-    reveal_plugins: ["zoom"]
+    self_contained: true
 ---
 
 
@@ -21,7 +20,6 @@ output:
 library(tidyverse)
 options(tibble.print_max = 8, tibble.print_min = 4)
 ```
-
 
 ## Tidyverse
 
