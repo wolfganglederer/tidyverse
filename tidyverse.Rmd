@@ -224,6 +224,15 @@ mutate(starwars_short,
        bmi_rank = min_rank(bmi)) 
 ```
 
+# arrange()
 
+## arrange()
 
+- Sortiert den Datensatz nach einer Variable. 
+- Weitere Variablen werden benutzt um Bindungen zu brechen.
+- Fehlende werte werden ans Ende sortiert,
+
+```{r}
+arrange(starwars, desc(height), mass)
+```
 

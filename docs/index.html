@@ -729,6 +729,25 @@ Benne <code>gender</code> in <code>sex</code> um
 ## 4    Darth Vader    202   136 33.33007      obese       50
 ## # ... with 83 more rows</code></pre>
 </section></section>
+<section><section id="arrange" class="titleslide slide level1"><h1>arrange()</h1></section><section id="arrange-1" class="slide level2">
+<h2>arrange()</h2>
+<ul>
+<li>Sortiert den Datensatz nach einer Variable.</li>
+<li>Weitere Variablen werden benutzt um Bindungen zu brechen.</li>
+<li>Fehlende werte werden ans Ende sortiert,</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">arrange</span>(starwars, <span class="kw">desc</span>(height), mass)</code></pre></div>
+<pre><code>## # A tibble: 87 x 13
+##          name height  mass hair_color skin_color eye_color birth_year
+##         &lt;chr&gt;  &lt;int&gt; &lt;dbl&gt;      &lt;chr&gt;      &lt;chr&gt;     &lt;chr&gt;      &lt;dbl&gt;
+## 1 Yarael Poof    264    NA       none      white    yellow         NA
+## 2     Tarfful    234   136      brown      brown      blue         NA
+## 3     Lama Su    229    88       none       grey     black         NA
+## 4   Chewbacca    228   112      brown    unknown      blue        200
+## # ... with 83 more rows, and 6 more variables: gender &lt;chr&gt;,
+## #   homeworld &lt;chr&gt;, species &lt;chr&gt;, films &lt;list&gt;, vehicles &lt;list&gt;,
+## #   starships &lt;list&gt;</code></pre>
+</section></section>
     </div>
   </div>
 
