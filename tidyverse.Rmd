@@ -14,14 +14,12 @@ output:
 ---
 
 
-# Tidyverse
+## Tidyverse
 
-```{r}
+```{r, echo=FALSE, message=FALSE,warning=FALSE}
 library(tidyverse)
 options(tibble.print_max = 8, tibble.print_min = 4)
 ```
-
-## Tidyverse
 
 Ist eine Sammlung von Paketen von Hadley Wickham
 
