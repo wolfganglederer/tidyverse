@@ -13,11 +13,18 @@ output:
     self_contained: true
 ---
 
+# Tidyverse
+
+
 
 ## Tidyverse
 
 ```{r, echo=FALSE, message=FALSE,warning=FALSE}
+# install.packages("https://cran.r-project.org/src/contrib/Archive/tibble/tibble_1.3.4.tar.gz", 
+#                  repos = NULL, 
+#                  type = "source")
 library(tidyverse)
+library(knitr)
 options(tibble.print_max = 8, tibble.print_min = 4)
 ```
 
@@ -31,7 +38,10 @@ Ist eine Sammlung von Paketen von Hadley Wickham
 > - purrr (Funktionales Programmieren)
 > - readr (Einlesen von Daten)
 
-# dplyr
+# 
+
+![](hex-dplyr.png)
+
 ## 5 Verben
 
 >- `filter()` Zeilen auswählen mit einer Bedingung
@@ -85,6 +95,28 @@ Boolsche Operatoren:
 
 ## filter()
 
+Achtung fehlende Werte!
+
+```{r}
+identical(
+  filter(starwars, species != "Human"| is.na(species)),
+  filter(starwars, species != "Human")
+  )      
+```
+
+```{r}
+map_int(list(
+    human_na = filter(starwars, species != "Human"| is.na(species)),
+    human = filter(starwars, species != "Human")), 
+  nrow)
+```
+
+
+
+
+
+## filter()
+
 Übung:
 
 Alle Menschen größer als 1.90m
@@ -111,9 +143,10 @@ filter(starwars,
 ## select()
 
 - `rename()` behält alle Spalten und benennt um `rename(df, new = old)`
-- `select()` selektiert Spalten
+- `select()` selektiert Spalten über Namen oder Positionen
 
 ```{r}
+# select(starwars, 1, 9)
 select(starwars, name, homeworld)
 ```
 
@@ -127,7 +160,7 @@ select(starwars, name:mass)
 
 ## select()
 
-negative Auswahl mit -
+Entfernen von Spalten mit `-`
 
 ```{r}
 select(starwars, -name)
@@ -142,14 +175,14 @@ Selection helper
 * `ends_with()`: Endet mit einem Suffix
 * `contains()`: Enthält einen String
 * `matches()`: Matched eine RegEx
-* `num_range()`: Ein numerischer Bereich x01, x02, x03.
-* `one_of()`: Variablen in einem Character vector
+* `num_range("x", 1:3)`: x1, x2, x3.
+* `one_of()`: Variablen in einem character Vector
 * `everything()`: Alle Variablen.
 
 ## select()
 
 ```{r}
-select(starwars, ends_with("color"))
+select(starwars, name, ends_with("color"))
 ```
 
 ## select()
@@ -199,17 +232,16 @@ mutate(starwars_short,
 
 ## mutate()
 
-Wichtige Erzeuger-Funktionen
-
-- Arithmetische Operatoren `+, -, *, /, ^`
-- Modulus Opratoren `%/%, %%`
-- Logarithmen `log(), log2(), log10()` 
-- Verschiebung `lead(), lag()`
-- Kumulative Funktionen `cumsum(), cummean(), cummax() ...` 
-    - RcppRoll für weitere Funktionen
+- Arithmetische Operatoren: `+, -, *, /, ^`
+- Modulus Opratoren: `%/%, %%`
+- Logarithmen: `log(), log2(), log10()` 
+- Verschiebung: `lead(), lag()`
+- Vergleich von Spalten: `pmax()`, `pmin()`
+- Kumulative Funktionen: `cumsum()`, `cummean()`, `cummax()`, mehr in `RcppRoll`
 - Logische Operatoren
-- Rang-Funktionen `min_rank(), cume_dist(), percent_rank(), ...`
-- Factor Funktionen `cut()`
+- Rang-Funktionen: `min_rank()`, `cume_dist()`, `percent_rank()`, ...
+- Factor Funktionen: `cut()`, `recode()`
+-  `if_else()`, `coalesce()`, `case_when()`, `na_if()`
 
 ## mutate()
 
@@ -218,9 +250,11 @@ Beispiel
 ```{r}
 mutate(starwars_short,
        bmi = mass/(height/100)^2,
-       weighted = cut(bmi, breaks = c(0, 18.5, 25, 30,Inf), 
-                      labels = c("underweight", "normal", "overweight", "obese"), 
-                      ordered_result = TRUE),
+       bmi_category = 
+         cut(bmi, breaks = c(0, 18.5, 25, 30,Inf), 
+              labels = c("underweight", "normal", 
+                         "overweight", "obese"), 
+              ordered_result = TRUE),
        bmi_rank = min_rank(bmi)) 
 ```
 
@@ -228,11 +262,904 @@ mutate(starwars_short,
 
 ## arrange()
 
-- Sortiert den Datensatz nach einer Variable. 
-- Weitere Variablen werden benutzt um Bindungen zu brechen.
-- Fehlende werte werden ans Ende sortiert,
+- Sortiert den Datensatz nach einer Variable (aufsteigend)
+- `desc()` ändert die Richtung zu absteigend 
+- Weitere Variablen lösen Bindungen auf
+- Fehlende Werte werden ans Ende sortiert
+
 
 ```{r}
-arrange(starwars, desc(height), mass)
+arrange(starwars, desc(hair_color), mass)
 ```
+
+# summarize()
+## summarize()
+
+Fasst einen Datensatz zu einer Zeile zusammen
+
+```{r}
+summarize(starwars, mean_height = mean(height, na.rm =TRUE))
+```
+
+## summarize()
+
+- Aggregation: `sum()`
+- Lage: `mean()`, `weighted.mean()`, `median()`, ...
+- Verteilung: `var()`, `sd()`, `IQR()`, `mad()`
+- Rang: `min()`, `max()`, `nth()`
+- Anzahl: `n()`, `n_distinct()`
+- Summe mit Bedingung: `sum(!is.na())`, `sum(x > 5)`
+
+## group_by()
+
+- `group_by()` ändert die Analyseeinheit zu Guppen
+- `ungroup()` hebt die Gruppierung wieder auf
+
+```{r}
+starwars_group <- group_by(starwars, gender)
+summarize(starwars_group, 
+          mean_height = mean(height, na.rm =TRUE))
+```
+
+# Die Pipe `%>%`
+## Die Pipe `%>%`
+
+Längere Befehlsfolgen können unübersichtlich werden.
+
+<div class="fragment fade-up">
+Entweder viele Datensätze nutzen
+```{r,eval = FALSE}
+starwars_1 <- filter(starwars, species == "Human")
+starwars_2 <- group_by(starwars_1, gender)
+summarise(starwars_2, n = n())
+```
+</div>
+
+<div class="fragment fade-up">
+oder Funktionen verschachteln
+```{r, eval = FALSE}
+summarise(
+  group_by(
+    filter(starwars, species == "Human"),
+  gender),
+n = n())
+```
+</div>
+
+## Die Pipe `%>%`
+
+Das Konzept der Pipe stammt aus der Unix-Welt. 
+
+<div class="fragment fade-up">
+Das Objekt links wird das erste Argument der Funktion
+
+- `f(x, y)` wird zu `x %>% f(y)`
+- `g(f(x), y)` wird zu `f(x) %>% g(y)`
+- `f(x, y ,z)`  ist gleich `y %>% f(x, ., z)`
+</div>
+
+
+<div class="fragment fade-up">
+```{r}
+filter(starwars, species == "Human") %>% 
+  group_by(gender) %>% 
+  summarise(n= n())
+```
+</div>
+
+## Die Pipe `%>%`
+
+Falls der Datesatz nicht das erste Argument ist, kann man mit `.` explizit auf den Datensatz verweisen
+
+```{r}
+starwars %>%
+  filter(
+    species == "Human",
+    homeworld %in% c("Alderaan", "Tatooine", "Naboo")
+  ) %>%
+  xtabs(~ eye_color + homeworld, data = .)
+```
+
+
+
+## Übung
+
+Durchschnitt und Median des BMI pro Spezies und Geschlecht, sortiert absteigend nach der Anzahl.
+
+<div class="fragment fade-up">
+```{r}
+starwars %>%
+  mutate(bmi = mass / (height / 100)^2) %>%
+  group_by(species, gender) %>%
+  summarise(mean = mean(bmi, na.rm = TRUE),
+          med = median(bmi, na.rm = TRUE),
+          n = sum(!is.na(bmi))) %>%
+  arrange(desc(n))
+```
+</div>
+
+
+## group_by()
+
+`group_by()` funktioniert auch mit `mutate()` und `filter()`
+
+```{r}
+starwars %>%
+  select(name, homeworld, mass, species) %>%
+  group_by(homeworld) %>%
+  mutate(avg_mass = mean(mass, na.rm = TRUE)) %>%
+  filter(sum(!is.na(mass)) > 3)
+```
+
+# Verschiedenes
+
+## Scoped
+
+Varianten der `summarise()`, `mutate()` Funktionen 
+
+- `_if` Variablen die eine Bedingung erfüllen
+- `_all` alle nicht gruppierenden Variablen
+- `_at` alle Variablen selektiert durch `select_helpers`
+
+<div class="fragment fade-up">
+```{r, eval = FALSE}
+starwars %>% mutate_at(vars(ends_with("color")), as.factor)
+```
+
+
+```{r}
+starwars %>% summarise_if(is.numeric, mean, na.rm = TRUE)
+```
+</div>
+
+
+
+
+## Scoped
+
+Für `filter()`, `select` und `group_by()` exisiteren auch `_all`, `_if`, `_at` Versionen
+
+<div class="fragment fade-up">
+Alle Zeilen die keine fehlenden Werte enthalten
+```{r}
+starwars %>% filter_all(all_vars(!is.na(.)))
+```
+</div>
+
+## Sonstiges
+
+- `slice(starwars, 1:5)` selektiert Zeilen nach Position
+- `sample_n()` oder `sample_frac()` ziehen Zufallsauswahl
+- `top_n()` Top `n` pro Gruppe (gewichtet)
+- `pull(.data, var)` äquivalent `.data[[var]]`
+- `distinct()` doppelte Einträge entfernen
+
+## List columns
+
+Tibbles können Listen, Objekte oder Tibbles als Wert enthalten
+
+```{r}
+starwars %>% 
+  filter(name == "R2-D2") %>% 
+  select(films) %>% 
+  pull()
+```
+
+## Do
+
+- `do()` führt Funktionen auf dem (gruppiertem) Tibble aus und schreibt das Ergebnis in eine Zelle
+- `group_by()`- `do()` wird vermutlich bald durch `tidyr::nest()` - `purrr::map` ersetzt.
+
+```{r}
+starwars %>% group_by(species) %>% filter(n()>3) %>% 
+  do(mod = lm(mass ~height, data = .)) %>% 
+  mutate(r_squared = summary(mod)$r.squared,
+         n = length(resid(mod)))
+```
+
+
+# Relational Data
+
+## Relational Data
+
+- Relationen sind Verbindungen zwischen genau zwei Tabellen
+- Primaray Key: Eindeutig für eine Beobachtung in der eigenen Tabelle
+- Foreign Key: Eindeutige Identifizierung in einer anderen Tabelle
+
+## Relational Data
+
+- Mutating Join: fügen Spalten hinzu
+- Filtering Join: filtert Beobachtungen
+- Mengen Operationen
+
+## Inner Join
+
+`inner_join(x, y)` 
+
+Gibt alle Beobachtungen zurück die sowohl in `x`, als auch in `y` vorkommen 
+
+
+```{r inner_join, echo = FALSE, warning=FALSE, message=FALSE, fig.width=6, fig.asp=0.5}
+
+library(colorspace)
+hcl_col <- rainbow_hcl(4)
+ggplot()+
+  
+  # links
+  annotate("rect", xmin = 0.1,xmax = 1, ymin = 3.1, ymax = 4, fill = hcl_col[1])+
+  annotate("rect", xmin = 0.1,xmax = 1, ymin = 2.1, ymax = 3, fill = hcl_col[2])+
+  annotate("rect", xmin = 0.1,xmax = 1, ymin = 1.1, ymax = 2,  fill = hcl_col[3])+
+  # annotate("rect", xmin = 0.1,xmax = 1, ymin = 0, ymax = 1, fill = hcl_col[4])+
+  annotate("text", x = 0.5, y = 3.5, label = "A")+
+  annotate("text", x = 0.5, y = 2.5, label = "B")+
+  annotate("text", x = 0.5, y = 1.5, label = "C")+
+  # annotate("text", x = 0.5, y = 0.5, label = "D")+
+  
+  
+  # Kind of join
+  
+  annotate("text", x = 1.5, y = 2, label = "Inner\nJoin", size = 6)+
+  
+  # rechts
+  # annotate("rect", xmin = 2.1,xmax = 3, ymin = 3.1, ymax = 4, fill = hcl_col[1])+
+  annotate("rect", xmin = 2.1,xmax = 3, ymin = 2.1, ymax = 3, fill = hcl_col[2])+
+  annotate("rect", xmin = 2.1,xmax = 3, ymin = 1.1, ymax = 2,  fill = hcl_col[3])+
+  annotate("rect", xmin = 2.1,xmax = 3, ymin = 0, ymax = 1, fill = hcl_col[4])+
+  # annotate("text", x = 2.5, y = 3.5, label = "1")+
+  annotate("text", x = 2.5, y = 2.5, label = "2")+
+  annotate("text", x = 2.5, y = 1.5, label = "3")+
+  annotate("text", x = 2.5, y = 0.5, label = "4")+
+  
+  # result
+  
+  annotate("text", x = 3.5, y = 2, label = "=", size  = 12)+
+  
+  # join
+  
+    # links
+  #annotate("rect", xmin = 4,xmax = 4.6, ymin = 3.1, ymax = 4, fill = hcl_col[1])+
+  annotate("rect", xmin = 4,xmax = 4.6, ymin = 2.1, ymax = 3, fill = hcl_col[2])+
+  annotate("rect", xmin = 4,xmax = 4.6, ymin = 1.1, ymax = 2,  fill = hcl_col[3])+
+  #annotate("rect", xmin = 4,xmax = 4.6, ymin = 0, ymax = 1, fill = hcl_col[4])+
+  #annotate("text", x = 4.3, y = 3.5, label = "A")+
+  annotate("text", x = 4.3, y = 2.5, label = "B")+
+  annotate("text", x = 4.3, y = 1.5, label = "C")+
+  #annotate("text", x = 4.3, y = 0.5, label = "D")+
+  
+  # rechts
+  #annotate("rect", xmin = 4.7,xmax = 5.3, ymin = 3.1, ymax = 4, fill = hcl_col[1])+
+  annotate("rect", xmin = 4.7,xmax = 5.3, ymin = 2.1, ymax = 3, fill = hcl_col[2])+
+  annotate("rect", xmin = 4.7,xmax = 5.3, ymin = 1.1, ymax = 2,  fill = hcl_col[3])+
+  #annotate("rect", xmin = 4.7,xmax = 5.3, ymin = 0, ymax = 1, fill = hcl_col[4])+
+  #annotate("text", x = 5, y = 3.5, label = "1")+
+  annotate("text", x = 5, y = 2.5, label = "2")+
+  annotate("text", x = 5, y = 1.5, label = "3")+
+  # annotate("text", x = 5, y = 0.5, label = "4")+
+  theme_void()
+```
+
+
+
+## Left Join
+
+- `left_join(x, y)` Gibt alle Beobachtungen zurück die in `x` enthalten sind ergänzt um die Informatioen aus `y`
+- `right_join(x,y)` = `left_join(y,x)`
+
+
+```{r left_join, echo = FALSE, warning=FALSE, message=FALSE, fig.width=6, fig.asp=0.5}
+ggplot()+
+  
+  # links
+  annotate("rect", xmin = 0.1,xmax = 1, ymin = 3.1, ymax = 4, fill = hcl_col[1])+
+  annotate("rect", xmin = 0.1,xmax = 1, ymin = 2.1, ymax = 3, fill = hcl_col[2])+
+  annotate("rect", xmin = 0.1,xmax = 1, ymin = 1.1, ymax = 2,  fill = hcl_col[3])+
+  # annotate("rect", xmin = 0.1,xmax = 1, ymin = 0, ymax = 1, fill = hcl_col[4])+
+  annotate("text", x = 0.5, y = 3.5, label = "A")+
+  annotate("text", x = 0.5, y = 2.5, label = "B")+
+  annotate("text", x = 0.5, y = 1.5, label = "C")+
+  # annotate("text", x = 0.5, y = 0.5, label = "D")+
+  
+  
+  # Kind of join
+  
+  annotate("text", x = 1.5, y = 2, label = "Left\nJoin", size = 6)+
+  
+  # rechts
+  # annotate("rect", xmin = 2.1,xmax = 3, ymin = 3.1, ymax = 4, fill = hcl_col[1])+
+  annotate("rect", xmin = 2.1,xmax = 3, ymin = 2.1, ymax = 3, fill = hcl_col[2])+
+  annotate("rect", xmin = 2.1,xmax = 3, ymin = 1.1, ymax = 2,  fill = hcl_col[3])+
+  annotate("rect", xmin = 2.1,xmax = 3, ymin = 0, ymax = 1, fill = hcl_col[4])+
+  # annotate("text", x = 2.5, y = 3.5, label = "1")+
+  annotate("text", x = 2.5, y = 2.5, label = "2")+
+  annotate("text", x = 2.5, y = 1.5, label = "3")+
+  annotate("text", x = 2.5, y = 0.5, label = "4")+
+  
+  # result
+  
+  annotate("text", x = 3.5, y = 2, label = "=", size  = 12)+
+  
+  # join
+  
+    # links
+  annotate("rect", xmin = 4,xmax = 4.6, ymin = 3.1, ymax = 4, fill = hcl_col[1])+
+  annotate("rect", xmin = 4,xmax = 4.6, ymin = 2.1, ymax = 3, fill = hcl_col[2])+
+  annotate("rect", xmin = 4,xmax = 4.6, ymin = 1.1, ymax = 2,  fill = hcl_col[3])+
+  #annotate("rect", xmin = 4,xmax = 4.6, ymin = 0, ymax = 1, fill = hcl_col[4])+
+  annotate("text", x = 4.3, y = 3.5, label = "A")+
+  annotate("text", x = 4.3, y = 2.5, label = "B")+
+  annotate("text", x = 4.3, y = 1.5, label = "C")+
+  #annotate("text", x = 4.3, y = 0.5, label = "D")+
+  
+  # rechts
+  #annotate("rect", xmin = 4.7,xmax = 5.3, ymin = 3.1, ymax = 4, fill = hcl_col[1])+
+  annotate("rect", xmin = 4.7,xmax = 5.3, ymin = 2.1, ymax = 3, fill = hcl_col[2])+
+  annotate("rect", xmin = 4.7,xmax = 5.3, ymin = 1.1, ymax = 2,  fill = hcl_col[3])+
+  #annotate("rect", xmin = 4.7,xmax = 5.3, ymin = 0, ymax = 1, fill = hcl_col[4])+
+  #annotate("text", x = 5, y = 3.5, label = "1")+
+  annotate("text", x = 5, y = 2.5, label = "2")+
+  annotate("text", x = 5, y = 1.5, label = "3")+
+  # annotate("text", x = 5, y = 0.5, label = "4")+
+  theme_void()
+```
+
+
+
+## Full Join
+
+`full_join(x, y)` 
+
+Gibt alle Beobachtungen aus `x` und `y` zurück
+
+
+```{r full_join, echo = FALSE, warning=FALSE, message=FALSE, fig.width=6, fig.asp=0.5}
+ggplot()+
+  
+  # links
+  annotate("rect", xmin = 0.1,xmax = 1, ymin = 3.1, ymax = 4, fill = hcl_col[1])+
+  annotate("rect", xmin = 0.1,xmax = 1, ymin = 2.1, ymax = 3, fill = hcl_col[2])+
+  annotate("rect", xmin = 0.1,xmax = 1, ymin = 1.1, ymax = 2,  fill = hcl_col[3])+
+  # annotate("rect", xmin = 0.1,xmax = 1, ymin = 0, ymax = 1, fill = hcl_col[4])+
+  annotate("text", x = 0.5, y = 3.5, label = "A")+
+  annotate("text", x = 0.5, y = 2.5, label = "B")+
+  annotate("text", x = 0.5, y = 1.5, label = "C")+
+  # annotate("text", x = 0.5, y = 0.5, label = "D")+
+  
+  
+  # Kind of join
+  
+  annotate("text", x = 1.5, y = 2, label = "Full\nJoin", size = 6)+
+  
+  # rechts
+  # annotate("rect", xmin = 2.1,xmax = 3, ymin = 3.1, ymax = 4, fill = hcl_col[1])+
+  annotate("rect", xmin = 2.1,xmax = 3, ymin = 2.1, ymax = 3, fill = hcl_col[2])+
+  annotate("rect", xmin = 2.1,xmax = 3, ymin = 1.1, ymax = 2,  fill = hcl_col[3])+
+  annotate("rect", xmin = 2.1,xmax = 3, ymin = 0, ymax = 1, fill = hcl_col[4])+
+  # annotate("text", x = 2.5, y = 3.5, label = "1")+
+  annotate("text", x = 2.5, y = 2.5, label = "2")+
+  annotate("text", x = 2.5, y = 1.5, label = "3")+
+  annotate("text", x = 2.5, y = 0.5, label = "4")+
+  
+  # result
+  
+  annotate("text", x = 3.5, y = 2, label = "=", size  = 12)+
+  
+  # join
+  
+    # links
+  annotate("rect", xmin = 4,xmax = 4.6, ymin = 3.1, ymax = 4, fill = hcl_col[1])+
+  annotate("rect", xmin = 4,xmax = 4.6, ymin = 2.1, ymax = 3, fill = hcl_col[2])+
+  annotate("rect", xmin = 4,xmax = 4.6, ymin = 1.1, ymax = 2,  fill = hcl_col[3])+
+  #annotate("rect", xmin = 4,xmax = 4.6, ymin = 0, ymax = 1, fill = hcl_col[4])+
+  annotate("text", x = 4.3, y = 3.5, label = "A")+
+  annotate("text", x = 4.3, y = 2.5, label = "B")+
+  annotate("text", x = 4.3, y = 1.5, label = "C")+
+  #annotate("text", x = 4.3, y = 0.5, label = "D")+
+  
+  # rechts
+  # annotate("rect", xmin = 4.7,xmax = 5.3, ymin = 3.1, ymax = 4, fill = hcl_col[1])+
+  annotate("rect", xmin = 4.7,xmax = 5.3, ymin = 2.1, ymax = 3, fill = hcl_col[2])+
+  annotate("rect", xmin = 4.7,xmax = 5.3, ymin = 1.1, ymax = 2,  fill = hcl_col[3])+
+  annotate("rect", xmin = 4.7,xmax = 5.3, ymin = 0, ymax = 1, fill = hcl_col[4])+
+  # annotate("text", x = 5, y = 3.5, label = "1")+
+  annotate("text", x = 5, y = 2.5, label = "2")+
+  annotate("text", x = 5, y = 1.5, label = "3")+
+  annotate("text", x = 5, y = 0.5, label = "4")+
+  theme_void()
+```
+
+
+
+## Join
+
+Doppelte Schlüssel
+
+
+```{r double_key, echo = FALSE, warning=FALSE, message=FALSE, fig.width=6, fig.asp=0.5}
+ggplot()+
+  
+  # links
+  annotate("rect", xmin = 0.1,xmax = 1, ymin = 3.1, ymax = 4, fill = hcl_col[2])+
+  annotate("rect", xmin = 0.1,xmax = 1, ymin = 2.1, ymax = 3, fill = hcl_col[2])+
+  annotate("rect", xmin = 0.1,xmax = 1, ymin = 1.1, ymax = 2,  fill = hcl_col[3])+
+  # annotate("rect", xmin = 0.1,xmax = 1, ymin = 0, ymax = 1, fill = hcl_col[4])+
+  annotate("text", x = 0.5, y = 3.5, label = "A")+
+  annotate("text", x = 0.5, y = 2.5, label = "B")+
+  annotate("text", x = 0.5, y = 1.5, label = "C")+
+  # annotate("text", x = 0.5, y = 0.5, label = "D")+
+  
+  
+  # Kind of join
+  
+  annotate("text", x = 1.5, y = 2, label = "Left\nJoin", size = 6)+
+  
+  # rechts
+  # annotate("rect", xmin = 2.1,xmax = 3, ymin = 3.1, ymax = 4, fill = hcl_col[1])+
+  annotate("rect", xmin = 2.1,xmax = 3, ymin = 2.1, ymax = 3, fill = hcl_col[2])+
+  annotate("rect", xmin = 2.1,xmax = 3, ymin = 1.1, ymax = 2,  fill = hcl_col[3])+
+  annotate("rect", xmin = 2.1,xmax = 3, ymin = 0, ymax = 1, fill = hcl_col[4])+
+  # annotate("text", x = 2.5, y = 3.5, label = "1")+
+  annotate("text", x = 2.5, y = 2.5, label = "2")+
+  annotate("text", x = 2.5, y = 1.5, label = "3")+
+  annotate("text", x = 2.5, y = 0.5, label = "4")+
+  
+  # result
+  
+  annotate("text", x = 3.5, y = 2, label = "=", size  = 12)+
+  
+  # join
+  
+    # links
+  annotate("rect", xmin = 4,xmax = 4.6, ymin = 3.1, ymax = 4, fill = hcl_col[2])+
+  annotate("rect", xmin = 4,xmax = 4.6, ymin = 2.1, ymax = 3, fill = hcl_col[2])+
+  annotate("rect", xmin = 4,xmax = 4.6, ymin = 1.1, ymax = 2,  fill = hcl_col[3])+
+  #annotate("rect", xmin = 4,xmax = 4.6, ymin = 0, ymax = 1, fill = hcl_col[4])+
+  annotate("text", x = 4.3, y = 3.5, label = "A")+
+  annotate("text", x = 4.3, y = 2.5, label = "B")+
+  annotate("text", x = 4.3, y = 1.5, label = "C")+
+  #annotate("text", x = 4.3, y = 0.5, label = "D")+
+  
+  # rechts
+  annotate("rect", xmin = 4.7,xmax = 5.3, ymin = 3.1, ymax = 4, fill = hcl_col[2])+
+  annotate("rect", xmin = 4.7,xmax = 5.3, ymin = 2.1, ymax = 3, fill = hcl_col[2])+
+  annotate("rect", xmin = 4.7,xmax = 5.3, ymin = 1.1, ymax = 2,  fill = hcl_col[3])+
+  #annotate("rect", xmin = 4.7,xmax = 5.3, ymin = 0, ymax = 1, fill = hcl_col[4])+
+   annotate("text", x = 5, y = 3.5, label = "2")+
+  annotate("text", x = 5, y = 2.5, label = "2")+
+  annotate("text", x = 5, y = 1.5, label = "3")+
+  #annotate("text", x = 5, y = 0.5, label = "4")+
+  theme_void()
+```
+
+
+## Semi Join
+
+`semi_join(x,y)` behält alle Fälle aus `x` die eine Entsprechung in `y` haben.
+
+
+```{r semi_join, echo = FALSE, warning=FALSE, message=FALSE, fig.width=6, fig.asp=0.5}
+ggplot()+
+  
+  # links
+  annotate("rect", xmin = 0.1,xmax = 1, ymin = 3.1, ymax = 4, fill = hcl_col[1])+
+  annotate("rect", xmin = 0.1,xmax = 1, ymin = 2.1, ymax = 3, fill = hcl_col[2])+
+  annotate("rect", xmin = 0.1,xmax = 1, ymin = 1.1, ymax = 2,  fill = hcl_col[3])+
+  annotate("rect", xmin = 0.1,xmax = 1, ymin = 0, ymax = 1, fill = hcl_col[4])+
+  annotate("text", x = 0.5, y = 3.5, label = "A")+
+  annotate("text", x = 0.5, y = 2.5, label = "B")+
+  annotate("text", x = 0.5, y = 1.5, label = "C")+
+  annotate("text", x = 0.5, y = 0.5, label = "D")+
+  
+  
+  # Kind of join
+  
+  annotate("text", x = 1.5, y = 2, label = "Semi\nJoin", size = 6)+
+  
+  # rechts
+  # annotate("rect", xmin = 2.1,xmax = 3, ymin = 3.1, ymax = 4, fill = hcl_col[1])+
+  annotate("rect", xmin = 2.1,xmax = 3, ymin = 2.1, ymax = 3, fill = hcl_col[2])+
+  # annotate("rect", xmin = 2.1,xmax = 3, ymin = 1.1, ymax = 2,  fill = hcl_col[3])+
+  annotate("rect", xmin = 2.1,xmax = 3, ymin = 0, ymax = 1, fill = hcl_col[4])+
+  # annotate("text", x = 2.5, y = 3.5, label = "1")+
+  annotate("text", x = 2.5, y = 2.5, label = "2")+
+  # annotate("text", x = 2.5, y = 1.5, label = "3")+
+  annotate("text", x = 2.5, y = 0.5, label = "4")+
+  
+  # result
+  
+  annotate("text", x = 3.5, y = 2, label = "=", size  = 12)+
+  
+  # join
+  
+    # links
+  #annotate("rect", xmin = 4,xmax = 4.6, ymin = 3.1, ymax = 4, fill = hcl_col[2])+
+  annotate("rect", xmin = 4,xmax = 4.6, ymin = 2.1, ymax = 3, fill = hcl_col[2])+
+  # annotate("rect", xmin = 4,xmax = 4.6, ymin = 1.1, ymax = 2,  fill = hcl_col[3])+
+  annotate("rect", xmin = 4,xmax = 4.6, ymin = 0, ymax = 1, fill = hcl_col[4])+
+  #annotate("text", x = 4.3, y = 3.5, label = "A")+
+  annotate("text", x = 4.3, y = 2.5, label = "B")+
+  #annotate("text", x = 4.3, y = 1.5, label = "C")+
+  annotate("text", x = 4.3, y = 0.5, label = "D")+
+  
+  # rechts
+  # annotate("rect", xmin = 4.7,xmax = 5.3, ymin = 3.1, ymax = 4, fill = hcl_col[2])+
+  # annotate("rect", xmin = 4.7,xmax = 5.3, ymin = 2.1, ymax = 3, fill = hcl_col[2])+
+  # annotate("rect", xmin = 4.7,xmax = 5.3, ymin = 1.1, ymax = 2,  fill = hcl_col[3])+
+  # annotate("rect", xmin = 4.7,xmax = 5.3, ymin = 0, ymax = 1, fill = hcl_col[4])+
+  # annotate("text", x = 5, y = 3.5, label = "2")+
+  # annotate("text", x = 5, y = 2.5, label = "2")+
+  # annotate("text", x = 5, y = 1.5, label = "3")+
+  # annotate("text", x = 5, y = 0.5, label = "4")+
+  theme_void()
+```
+
+
+## Anti Join
+
+`anti_join` entfernt alle Beobachtungen aus `x` die eine Entsprechung in `y` haben
+
+
+```{r anti_join, echo = FALSE, warning=FALSE, message=FALSE, fig.width=6, fig.asp=0.5}
+ggplot()+
+  
+  # links
+  annotate("rect", xmin = 0.1,xmax = 1, ymin = 3.1, ymax = 4, fill = hcl_col[1])+
+  annotate("rect", xmin = 0.1,xmax = 1, ymin = 2.1, ymax = 3, fill = hcl_col[2])+
+  annotate("rect", xmin = 0.1,xmax = 1, ymin = 1.1, ymax = 2,  fill = hcl_col[3])+
+  annotate("rect", xmin = 0.1,xmax = 1, ymin = 0, ymax = 1, fill = hcl_col[4])+
+  annotate("text", x = 0.5, y = 3.5, label = "A")+
+  annotate("text", x = 0.5, y = 2.5, label = "B")+
+  annotate("text", x = 0.5, y = 1.5, label = "C")+
+  annotate("text", x = 0.5, y = 0.5, label = "D")+
+  
+  
+  # Kind of join
+  
+  annotate("text", x = 1.5, y = 2, label = "Anti\nJoin", size = 6)+
+  
+  # rechts
+  # annotate("rect", xmin = 2.1,xmax = 3, ymin = 3.1, ymax = 4, fill = hcl_col[1])+
+  annotate("rect", xmin = 2.1,xmax = 3, ymin = 2.1, ymax = 3, fill = hcl_col[2])+
+  # annotate("rect", xmin = 2.1,xmax = 3, ymin = 1.1, ymax = 2,  fill = hcl_col[3])+
+  annotate("rect", xmin = 2.1,xmax = 3, ymin = 0, ymax = 1, fill = hcl_col[4])+
+  # annotate("text", x = 2.5, y = 3.5, label = "1")+
+  annotate("text", x = 2.5, y = 2.5, label = "2")+
+  # annotate("text", x = 2.5, y = 1.5, label = "3")+
+  annotate("text", x = 2.5, y = 0.5, label = "4")+
+  
+  # result
+  
+  annotate("text", x = 3.5, y = 2, label = "=", size  = 12)+
+  
+  # join
+  
+    # links
+  annotate("rect", xmin = 4,xmax = 4.6, ymin = 3.1, ymax = 4, fill = hcl_col[1])+
+  #annotate("rect", xmin = 4,xmax = 4.6, ymin = 2.1, ymax = 3, fill = hcl_col[2])+
+  annotate("rect", xmin = 4,xmax = 4.6, ymin = 1.1, ymax = 2,  fill = hcl_col[3])+
+  #annotate("rect", xmin = 4,xmax = 4.6, ymin = 0, ymax = 1, fill = hcl_col[4])+
+  annotate("text", x = 4.3, y = 3.5, label = "A")+
+  #annotate("text", x = 4.3, y = 2.5, label = "B")+
+  annotate("text", x = 4.3, y = 1.5, label = "C")+
+  #annotate("text", x = 4.3, y = 0.5, label = "D")+
+  
+  # rechts
+  # annotate("rect", xmin = 4.7,xmax = 5.3, ymin = 3.1, ymax = 4, fill = hcl_col[2])+
+  # annotate("rect", xmin = 4.7,xmax = 5.3, ymin = 2.1, ymax = 3, fill = hcl_col[2])+
+  # annotate("rect", xmin = 4.7,xmax = 5.3, ymin = 1.1, ymax = 2,  fill = hcl_col[3])+
+  # annotate("rect", xmin = 4.7,xmax = 5.3, ymin = 0, ymax = 1, fill = hcl_col[4])+
+  # annotate("text", x = 5, y = 3.5, label = "2")+
+  # annotate("text", x = 5, y = 2.5, label = "2")+
+  # annotate("text", x = 5, y = 1.5, label = "3")+
+  # annotate("text", x = 5, y = 0.5, label = "4")+
+  theme_void()
+```
+
+## Beispiele
+
+```{r}
+(planets <- tribble(
+  ~homeworld, ~type,
+  "Tatooine",  "Desert",
+  "Naboo",     "Terrestrial",
+  "Alderaan",  "Terrestrial",
+  "Coruscant", "Ecumenopolis",
+  "Kashyyyk",  "Jungle"
+))
+```
+
+## Join
+
+- `*_join()` macht automatisch einen natürlichen Join über alle Variablen mit gleichen Namen
+- mit `by` können explizit Variablen angegeben werden
+
+```{r}
+left_join(starwars, planets) %>% 
+  # left_join(starwars, planets, by = "homeworld" ) %>% 
+  select(name, homeworld, type)
+```
+
+## Join
+
+- Schlüsselvariablen mit unterschiedlichen Namen können auch explizt angegeben werden
+- `by = c("a" = "b")` joined  `x.a` mit `y.b`
+
+```{r}
+planets %>% 
+  rename(planet_name = homeworld) %>% 
+  right_join(starwars, by = c("planet_name" = "homeworld")) %>% 
+  select(name, planet_name, type)
+```
+
+
+## Join
+
+- Falls in Datensätzen Variablen mit gleichen Namen vorkommen, werden sie automatisch umbenannt
+- Kann mit der Option `suffix` angepasst werden
+
+```{r}
+planets %>% 
+  rename(name = type) %>% 
+  right_join(starwars, 
+             by = "homeworld", 
+             suffix = c(".x", ".y")) %>% 
+  select(homeworld, name.x, name.y)
+```
+
+
+
+```{r, eval = FALSE, echo = FALSE, warning=FALSE, message=FALSE, fig.width=2, fig.asp=0.5}
+
+library(colorspace)
+hcl_col <- rainbow_hcl(4)
+ggplot()+
+  
+  # links
+  annotate("rect", xmin = 0.1,xmax = 1, ymin = 3.1, ymax = 4, fill = hcl_col[1])+
+  annotate("rect", xmin = 0.1,xmax = 1, ymin = 2.1, ymax = 3, fill = hcl_col[2])+
+  annotate("rect", xmin = 0.1,xmax = 1, ymin = 1.1, ymax = 2,  fill = hcl_col[3])+
+  annotate("rect", xmin = 0.1,xmax = 1, ymin = 0, ymax = 1, fill = hcl_col[4])+
+  annotate("text", x = 0.5, y = 3.5, label = "A")+
+  annotate("text", x = 0.5, y = 2.5, label = "B")+
+  annotate("text", x = 0.5, y = 1.5, label = "C")+
+  annotate("text", x = 0.5, y = 0.5, label = "D")+
+  
+  
+  # Kind of join
+  
+  annotate("text", x = 1.5, y = 2, label = "Left\nJoin")+
+  
+  # rechts
+  annotate("rect", xmin = 2.1,xmax = 3, ymin = 3.1, ymax = 4, fill = hcl_col[1])+
+  annotate("rect", xmin = 2.1,xmax = 3, ymin = 2.1, ymax = 3, fill = hcl_col[2])+
+  annotate("rect", xmin = 2.1,xmax = 3, ymin = 1.1, ymax = 2,  fill = hcl_col[3])+
+  annotate("rect", xmin = 2.1,xmax = 3, ymin = 0, ymax = 1, fill = hcl_col[4])+
+  annotate("text", x = 2.5, y = 3.5, label = "1")+
+  annotate("text", x = 2.5, y = 2.5, label = "2")+
+  annotate("text", x = 2.5, y = 1.5, label = "3")+
+  annotate("text", x = 2.5, y = 0.5, label = "4")+
+  
+  # result
+  
+  annotate("text", x = 3.5, y = 2, label = "=", size  = 6)+
+  
+  # join
+  
+    # links
+  annotate("rect", xmin = 4,xmax = 4.6, ymin = 3.1, ymax = 4, fill = hcl_col[1])+
+  annotate("rect", xmin = 4,xmax = 4.6, ymin = 2.1, ymax = 3, fill = hcl_col[2])+
+  annotate("rect", xmin = 4,xmax = 4.6, ymin = 1.1, ymax = 2,  fill = hcl_col[3])+
+  annotate("rect", xmin = 4,xmax = 4.6, ymin = 0, ymax = 1, fill = hcl_col[4])+
+  annotate("text", x = 4.3, y = 3.5, label = "A")+
+  annotate("text", x = 4.3, y = 2.5, label = "B")+
+  annotate("text", x = 4.3, y = 1.5, label = "C")+
+  annotate("text", x = 4.3, y = 0.5, label = "D")+
+  
+  # rechts
+  annotate("rect", xmin = 4.7,xmax = 5.3, ymin = 3.1, ymax = 4, fill = hcl_col[1])+
+  annotate("rect", xmin = 4.7,xmax = 5.3, ymin = 2.1, ymax = 3, fill = hcl_col[2])+
+  annotate("rect", xmin = 4.7,xmax = 5.3, ymin = 1.1, ymax = 2,  fill = hcl_col[3])+
+  annotate("rect", xmin = 4.7,xmax = 5.3, ymin = 0, ymax = 1, fill = hcl_col[4])+
+  annotate("text", x = 5, y = 3.5, label = "1")+
+  annotate("text", x = 5, y = 2.5, label = "2")+
+  annotate("text", x = 5, y = 1.5, label = "3")+
+  annotate("text", x = 5, y = 0.5, label = "4")+
+  
+  theme_void()
+  
+  
+
+```
+
+## Übung
+
+Nur erdähnliche Planeten 
+
+<div class="fragment fade-up">
+```{r}
+left_join(starwars, planets) %>% 
+  filter(type == "Terrestrial") %>% 
+  dim()
+```
+</div>
+<div class="fragment fade-up">
+```{r}
+planets %>% 
+  filter(type == "Terrestrial") %>% 
+  semi_join(starwars, .) %>% 
+  dim()
+
+```
+</div>
+
+## Mengen 
+
+
+- union(x, y): entspricht `bind_rows` oder SQL `UNION`
+- union_all(x, y): wie `union` ohne doppelte Werte 
+- intersect(x, y): in `x` und `y` vorhanden
+- setdiff(x, y): in `x` enthalten und nicht in `y`
+
+```{r}
+setdiff(starwars[1:10,1:3], starwars[6:15,1:3])
+```
+
+# Databases
+
+## Databases
+
+Man kann mit `dplyr` direkt auf Datenbanken zugreifen.
+
+Database Funktionen sind nach `dbplyr` ausgelagert.
+
+
+```{r, warning=FALSE}
+library(RSQLite)
+con <- DBI::dbConnect(RSQLite::SQLite(), ":memory:")
+copy_to(con, select_if(starwars, ~!is_list(.)), name = "starwars")
+copy_to(con, planets)
+```
+
+## Databases
+
+Mit `tbl` wird eine Verknüpfung zur Datenbank erstellt
+
+Die Ausführung ist *lazy*. Zeilen müssen explizit angefordert werden
+
+```{r}
+planets_tbl<- tbl(con, "planets")
+starwars_tbl <- tbl(con, "starwars")
+starwars_tbl
+```
+
+## Databases
+
+`dplyr` Befehle werden auf der Datenbank ausgeführt.
+
+Mit `collect()` werden alle Zeilen geholt.
+
+```{r}
+starwars_tbl %>% left_join(planets_tbl) %>% 
+  filter(type == "Desert") %>% 
+  select(name:mass, homeworld)
+```
+
+## Databases
+
+`dplyr` Befehle werden in SQL umgewandelt.
+
+`show_query()` zeigt den generierten SQL-Code 
+
+```{r}
+starwars_tbl %>% left_join(planets_tbl) %>% 
+  filter(type == "Desert") %>% 
+  show_query()
+```
+
+
+# tidyr
+
+## Tidy Data
+
+[Tidy data](http://vita.had.co.nz/papers/tidy-data.html) 
+
+
+Daten in einer vernünftigen Struktur (3. Normalform) 
+
+
+- Jede Variable hat eine eigene Spalte
+- Jede Beobachtung hat eine eigen Zeile
+- eine Tabelle für jede Art von Variable
+
+## Messy Data
+
+```{r, echo = FALSE}
+messy <- tribble(
+~person, ~treatment_a, ~treatment_b,
+"John Smith", -99999 , 2,
+"Jane Doe", 16, 11,
+"Mary Johnson", 3, 1)
+messy %>% kable()
+```
+
+<div class="fragment fade-up">
+
+Transponiert
+
+```{r, echo = FALSE}
+gather(messy, key = treatment, value = result, -person) %>% 
+  spread(person, result)%>% 
+  kable("html")
+```
+</div>
+
+
+## Tidy Data
+
+Variablen
+
+>- `person` mit drei möglichen Werten
+>- `result` mit 5 oder 6 Ausprägungen
+>- `treatment` mit 2 Ausprägungen
+
+## Tidy data
+
+
+
+```{r, echo= FALSE}
+gather(messy, key = treatment, value = result, -person) %>% 
+  mutate(result = na_if(result, -99999),
+         treatment = str_sub(treatment, -1)) %>% 
+  kable
+```
+
+## Gather
+
+`gather()` fasst mehrere Spalten in Key-Value-Paare zusammen.
+
+```{r}
+# gather(messy, key = treatment, value = result, treatment_a, treatment_b)
+nearly_tidy <- 
+  gather(messy, key = treatment, value = result, -person)
+nearly_tidy
+```
+
+## Spread
+
+`spread()` wandelt Key-Value Paare in eigene Spalten um
+
+```{r}
+# spread(nearly_tidy, treatment, result) 
+spread(nearly_tidy, key = person, value = result) 
+```
+
+## Tidy Data
+
+```{r}
+tidy <- gather(messy, key = treatment, value = result, -person) %>% 
+  mutate(result = na_if(result, -99999),
+         treatment = str_sub(treatment, -1)) 
+tidy
+```
+
+
+## Tidy Data
+
+
+
+```{r, fig.height=4, warning=FALSE}
+tidy %>% 
+  ggplot(aes(x = person, y =result))+
+  geom_col()+
+  facet_wrap(~treatment)
+```
+
+
+# Links
+## Links
+
+- [R for Data Science](http://r4ds.had.co.nz/)
+- [tidyverse.org](https://www.tidyverse.org/)
+- [Cheat Sheets](https://www.rstudio.com/resources/cheatsheets/)
+- [Stackoverflow](https://stackoverflow.com/questions/tagged/r)
+
 
